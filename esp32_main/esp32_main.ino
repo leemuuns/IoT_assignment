@@ -215,15 +215,11 @@ void patternRainbow() {
 
   // Rainbow sequence with 3 LEDs:
   // step 0: R on       step 1: Y on      step 2: G on
-  // step 3: R+Y on     step 4: Y+G on    step 5: G+R on
-  const int steps = 6;
-  const int seq[6][3] = {
+  const int steps = 3;
+  const int seq[3][3] = {
     {1,0,0},  // R
     {0,1,0},  // Y
     {0,0,1},  // G
-    {1,1,0},  // R+Y
-    {0,1,1},  // Y+G
-    {1,0,1},  // R+G
   };
 
   for (int i = 0; i < NUM_LEDS; i++)
