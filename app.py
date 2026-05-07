@@ -28,14 +28,13 @@ latest_data = {
 history = deque(maxlen=30)
 
 # Pattern command to send to ESP32 (set by browser)
-pending_pattern = 1   # default: Blink
+pending_pattern = 0   # default: Blink
 
 PATTERN_NAMES = {
-    0: "Solid",
-    1: "Blink",
-    2: "Chase",
-    3: "Rainbow",
-    4: "Fire 🔥"
+    0: "Blink",
+    1: "Chase",
+    2: "Rainbow",
+    3: "Fire 🔥"
 }
 
 # ================================================================
@@ -198,15 +197,14 @@ DASHBOARD_HTML = """
   <div class="card">
     <h2>💡 LED Pattern Control</h2>
     <div class="btn-grid">
-      <button class="btn-pattern" onclick="setPattern(0)" id="btn0">⬜ Solid</button>
-      <button class="btn-pattern" onclick="setPattern(1)" id="btn1">✦ Blink</button>
-      <button class="btn-pattern" onclick="setPattern(2)" id="btn2">➜ Chase</button>
-      <button class="btn-pattern" onclick="setPattern(3)" id="btn3">🌈 Rainbow</button>
-      <button class="btn-pattern active" onclick="setPattern(4)" id="btn4" style="grid-column:span 2">🔥 Fire</button>
+      <button class="btn-pattern active" onclick="setPattern(0)" id="btn0">✦ Blink</button>
+      <button class="btn-pattern"        onclick="setPattern(1)" id="btn1">➜ Chase</button>
+      <button class="btn-pattern"        onclick="setPattern(2)" id="btn2">🌈 Rainbow</button>
+      <button class="btn-pattern"        onclick="setPattern(3)" id="btn3">🔥 Fire</button>
     </div>
     <div class="status-row">
       <span class="dot"></span>
-      <span id="currentPatternLabel">Pattern: —</span>
+      <span id="currentPatternLabel">Current Pattern: —</span>
     </div>
   </div>
 
@@ -250,14 +248,14 @@ DASHBOARD_HTML = """
   });
 
   // ── Pattern button highlight ─────────────────────────────────
-  const PATTERN_NAMES = {0:'Solid', 1:'Blink', 2:'Chase', 3:'Rainbow', 4:'Fire 🔥'};
+  const PATTERN_NAMES = {0:'Blink', 1:'Chase', 2:'Rainbow', 3:'Fire 🔥'};
 
   function highlightPattern(id) {
-    for (let i = 0; i <= 4; i++) {
+    for (let i = 0; i <= 3; i++) {
       document.getElementById('btn' + i).classList.toggle('active', i === id);
     }
     document.getElementById('currentPatternLabel').textContent =
-      'Pattern: ' + (PATTERN_NAMES[id] || '—');
+      'Current Pattern: ' + (PATTERN_NAMES[id] || '—');
   }
 
   // ── Send pattern command to server ──────────────────────────
@@ -325,7 +323,7 @@ def index():
 # ── POST /data  ←  ESP32 sends sensor readings ──────────────────
 @app.route("/data", methods=["POST"])
 def receive_data():
-    global latest_data, pending_pattern
+    global latest_data
 
     payload = request.get_json(silent=True)
     if not payload:
@@ -333,7 +331,7 @@ def receive_data():
 
     latest_data["button"]      = int(payload.get("button",      0))
     latest_data["press_count"] = int(payload.get("press_count", 0))
-    latest_data["pattern"]     = int(payload.get("pattern",     1))
+    latest_data["pattern"]     = int(payload.get("pattern",     0))
     latest_data["timestamp"]   = datetime.now().strftime("%H:%M:%S")
 
     # Append to history buffer
@@ -352,7 +350,7 @@ def get_status():
     return jsonify({
         "button":       latest_data["button"],
         "press_count":  latest_data["press_count"],
-        "pattern":      pending_pattern,        # reflect what browser set
+        "pattern":      pending_pattern,
         "timestamp":    latest_data["timestamp"],
         "history":      list(history)
     })
